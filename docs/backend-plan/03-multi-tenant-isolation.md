@@ -1,12 +1,27 @@
-# 09 · 多租户隔离策略
+# 03 · 多租户隔离策略（二级租户模型）
 
-## 1. 隔离层级
+> ⚠️ 本文档已根据 2026-04-30 用户确认更新为**两级租户结构 + 客服 1:1 mini-program**。
+> 原版（一级租户）已废弃。
+
+## 1. 隔离层级（两级）
 
 ```
-租户键（tenant key）  ===  MiniProgram.id  ===  抖音 appid（业务唯一）
+Organization (主体 / 商家公司)
+   │
+   ├─ MiniProgram (抖音小程序 appid) ← **数据隔离的真实键**
+   │     │
+   │     ├─ Fan / Session / Message / Order / ...
+   │     └─ AgentMiniProgram (一对一绑定客服)
+   │
+   ├─ MiniProgram (同一主体的另一个小程序)
+   └─ ...
 ```
 
-所有业务表带 `mini_program_id`。隔离用「共享 DB + 应用层强制注入」实现。
+**真实数据隔离键**：`mini_program_id`。所有业务表带 `mini_program_id`。
+**Organization** 仅作分组和聚合维度（不参与数据隔离强制）。
+
+**客服归属**：业务铁律 1:1 — 一个 Agent 永远只属于一个 MiniProgram（参考微信版客服系统）。
+真人客服跨商家服务 = 创建多个客服账号，不是一账号跨租户。
 
 ## 2. 强制注入实现
 

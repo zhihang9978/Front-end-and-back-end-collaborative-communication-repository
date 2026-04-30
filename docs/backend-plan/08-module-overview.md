@@ -10,12 +10,13 @@
 | 01 | infra | 配置 / 日志 / Prisma / Redis / 拦截器 / 健康检查 |
 | 02 | auth | 平台管理员 / 客服 / Fan 三套登录 + JWT + 黑名单 |
 
-## 多租户骨架
+## 多租户骨架（两级 + 客服 1:1）
 
 | # | 模块 | 一句话 |
 |---|---|---|
-| 03 | mini-programs | 租户 CRUD + AppSecret AES 加密 + 业务配置 |
-| 04 | agents | 客服账号 + 多对多授权（M:N AgentMiniProgram） |
+| 29 | **organizations** | **主体（商家公司）CRUD**（NEW，二级租户上层） |
+| 03 | mini-programs | 小程序 CRUD + AppSecret AES 加密 + 归属 Organization |
+| 04 | agents | 客服账号 + **业务铁律 1:1 mini-program** + 改绑 batchBind |
 | 05 | fans | 终端用户 + anonymous → openid 升级 + 设备记录 |
 
 ## 客服会话核心
