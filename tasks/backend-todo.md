@@ -1,213 +1,170 @@
-# 后端任务清单
+# 后端任务清单（P0 联调闭环）
 
 负责人：Claude
-
 更新时间：2026-04-30
-当前阶段：**整体方案设计完成，等 Codex 评审 + 用户拍板后启动 Phase 0**
+当前阶段：**契约已收敛，启动 Phase 0 本地建库**
 
-> 完整规格见 `docs/backend-plan/`，本任务清单按 16 个 Phase 拆。
-> 状态符号：`[ ]` 未开始 / `[~]` 进行中 / `[x]` 完成 / `[!]` 阻塞
+> 完整规格见 `docs/backend-plan/`，本任务清单按 12 个 P0 接口 + agent-web 极简版组织。
+> 状态：`[ ]` 未开始 / `[~]` 进行中 / `[x]` 完成 / `[!]` 阻塞
 
 ---
 
-## 当前阻塞项（必须先解）
+## 当前不阻塞 Phase 0 的事
 
-- [!] **方案评审**：等 Codex 对 `docs/backend-plan/07-api-contract-impact.md` 9 条提案的反馈
-- [!] **用户拍板**：`docs/backend-plan/09-open-questions.md` 中 5 个用户必须决策项（平台命名 / 域名 / VPS / 通知 webhook / KMS）
-- [!] **真实凭据**：抖音 appid + secret（用于真机联调）
-- [!] **ICP 备案**：5-20 工作日（建议 P0 期同步启动）
+- [ ] 平台命名 + 主域名（部署期再定）
+- [ ] VPS 厂商选型（部署期再定）
+- [ ] 真实抖音 appid + secret（联调期再补；P0 用 DOUYIN_MODE=mock 跑）
+- [ ] ICP 备案（5-20 工作日，建议尽早启动）
+
+P0 全部代码可在本地完成，零依赖真实抖音平台。
 
 ---
 
 ## Phase 0 · 项目骨架（2 d）
 
-- [ ] `mkdir /Volumes/文件/dy/backend-platform/` + pnpm workspace
-- [ ] 4 个 app（api-server / admin-web / agent-web / shared）框架
-- [ ] Prisma schema 完整（25+ models）
+- [ ] 建 `/Volumes/文件/dy/backend-platform/`
+- [ ] pnpm workspace + 3 个 app（api-server / agent-web / shared）
+- [ ] Prisma schema（含 Organization + MiniProgram + Agent + AgentMiniProgram + 全部业务表）
+- [ ] Alembic-style migration 初始版
 - [ ] docker-compose（MySQL 8 + Redis 7）
 - [ ] ENV 配置 + zod 校验
-- [ ] `pnpm dev` 全部跑起来（空白页 + 健康端点）
+- [ ] 全局 envelope 响应拦截器 + HTTP 状态码 + 错误码体系
+- [ ] traceId 中间件 + pino 日志
+- [ ] `pnpm dev` 起来 + `/health` 返 200
 
-**验收**：`curl /health` 返 200；admin-web / agent-web 显示登录页
+**验收**：`curl /health` 200；`agent-web` 显示登录页；`prisma migrate dev` 可一键建表
 
 ---
 
-## Phase 1 · 抖音 OpenAPI Client（3 d）
+## Phase 1 · 抖音 OpenAPI Client（2 d）
 
-- [ ] DouyinModule 全部接口（jscode2session / token / 订阅 / 二维码 / schema / 内容安全 / 回调验签）
-- [ ] Mock + Real 两种实现切换（`DOUYIN_MODE=mock|real`）
+- [ ] DouyinModule 抽象 + Mock + Real 两种实现
 - [ ] TokenManager（Redis + Redlock + 提前 10min 刷新）
-- [ ] 单元测试 ≥ 90% 覆盖
+- [ ] err_no 映射 + 重试退避
+- [ ] **mock 模式**：jscode2session 返 mock_openid_xxx，access_token 返 mock_token
 
-**验收**：mock 模式所有接口 spec 跑通；err_no 映射准确；token 刷新风暴防护
-
----
-
-## Phase 2 · 鉴权 + 多租户基础（2 d）
-
-- [ ] platform_admins 表 + 登录 + JWT
-- [ ] mini-programs CRUD + AppSecret AES 加密
-- [ ] agents CRUD + AgentMiniProgram 多对多
-- [ ] TenantContextMiddleware + Prisma tenant 注入
-
-**验收**：超管登录 → 创建租户 → 创建客服 → 授权 → 跨租户查询自动拒绝
+**验收**：mock 模式所有接口 spec 跑通；DOUYIN_MODE=mock 全程不联网
 
 ---
 
-## Phase 3 · 用户身份（2 d）
+## Phase 2 · 鉴权 + 多租户（1.5 d）
 
-- [ ] `POST /douyin/login`（含新加 appid / hostApp 字段）
-- [ ] fans 模块 + anonymous → openid 升级
-- [ ] miniapp-shell controller 框架
+- [ ] PlatformAdmin 表 + 登录 + JWT
+- [ ] Organization 模块（CRUD）
+- [ ] MiniProgram 模块（CRUD + AppSecret AES 加密）
+- [ ] Agent 模块（CRUD + 1:1 binding + 改绑 batchBind）
+- [ ] TenantContextMiddleware + Prisma middleware（强制注入 miniProgramId）
+- [ ] seed.ts 创建：1 个超管 + 1 个 Org（洪承集团）+ 1 个 mp（洪承杂货店）+ 1 个 agent
 
-**验收**：mock 模式下 fan 拿 token；二次登录复用；anonymous 升级合并数据
-
----
-
-## Phase 4 · 商品 / 分类 / 预约（2 d）
-
-- [ ] categories CRUD + 创建租户时自动 4 个默认
-- [ ] products CRUD + 上下架 + 全文搜索
-- [ ] reservations 创建 + 状态机（pending/confirmed/completed/cancelled）
-- [ ] 把前端 14 个 mock 商品转成 SQL seed
-
-**验收**：`/douyin/categories` `/douyin/products` `/douyin/reservations` 全跑通；前端切 USE_MOCK=false 后业务一致
+**验收**：超管登录 → 创建 org → 加 mp → 加 agent；跨租户查询自动拒绝
 
 ---
 
-## Phase 5 · 客服会话核心（3 d）
+## Phase 3 · 12 个 P0 接口（3 d）
 
-- [ ] sessions 状态机
-- [ ] messages（文本 / 图片 / 系统）+ 幂等 + 撤回（2min）
-- [ ] welcome-messages 三类自动触发
-- [ ] content-safety antidirt 同步检测
+按 Codex 提议顺序：
 
-**验收**：mock fan 进会话页 → 收到欢迎语；发文本 → 落库；违禁词被拦截
+- [ ] **接口 1**：`POST /douyin/login`（appid 必填，hostApp 默认 douyin，返 token + isNewUser）
+- [ ] **接口 2**：`GET /douyin/config`（不登录可访问，按当前 mp 返）
+- [ ] **接口 3**：`GET /douyin/categories`（4 个固定分类）
+- [ ] **接口 4**：`GET /douyin/products?category=&keyword=`
+- [ ] **接口 5**：`GET /douyin/products/:id`
+- [ ] **接口 6**：`POST /douyin/reservations`（必登录，加密手机号，24h 限频）
+- [ ] **接口 7**：`GET /douyin/orders`（必登录，仅查自己的，倒序）
+- [ ] **接口 8**：`GET /douyin/orders/:id`（必登录，校验归属）
+- [ ] **接口 9**：`POST /douyin/customer-service/session`（必登录，复用活跃会话，返 isNew + welcomeMessage）
+- [ ] **接口 10**：`POST /douyin/customer-service/message/send`（user ack，clientMessageId 强制幂等，过 antidirt）
+- [ ] **接口 11**：`GET /douyin/customer-service/sessions/:id/messages?afterId=&limit=`（升序，afterId 为空返最近 20 条）
+- [ ] **接口 12**：`GET /douyin/customer-service/sync-offline`（拉取所有离线消息，自动标 DELIVERED）
+
+每个接口必须：
+- 有单元测试（happy + 至少 3 个错误路径）
+- 有集成测试覆盖
+- 响应严格符合 envelope
+- 错误码符合 6 位 int 体系
+
+**验收**：所有 12 接口通过 supertest + 真 MySQL/Redis 集成测试
 
 ---
 
-## Phase 6 · Socket 实时（2 d）
+## Phase 4 · Socket.IO + 离线消息（1.5 d）
 
 - [ ] AgentSocketGateway（鉴权 + 心跳 + Room 管理）
-- [ ] socket.io-redis-adapter 跨实例
-- [ ] 业务事件（SESSION_NEW / MESSAGE_USER / MESSAGE_AGENT_ECHO / SESSION_UPDATE）
+- [ ] socket.io-redis-adapter
+- [ ] 业务事件：SESSION_NEW / MESSAGE_USER / MESSAGE_AGENT_ECHO
+- [ ] OfflineMessage 表 + sync-offline 端点（已含在接口 12）
+- [ ] 离线消息 cron 7 天清理
 
-**验收**：mock 客服 socket 连接 + 收新消息事件；多实例广播一致
-
----
-
-## Phase 7 · 客服端 UI（5 d）
-
-- [ ] vue-pure-admin 模板初始化
-- [ ] 登录页（用户名 / 密码 + 8 位密钥）
-- [ ] 工作台三栏布局（会话 / 对话 / 上下文）
-- [ ] 多租户切换器
-- [ ] 桌面通知 + 声音 + WebSocket
-- [ ] 快捷回复 / 撤回 / 转接 / 关闭
-
-**验收**：客服浏览器登录 → 收 mock fan 进线 → 回复 → 用户拉到
+**验收**：mock 客服 socket 收新消息事件；用户离线 → 客服回复 → 用户上线 sync-offline 拿到
 
 ---
 
-## Phase 8 · 管理后台 UI（4 d）
+## Phase 5 · agent-web 极简版（4 d）
 
-- [ ] 仪表盘
-- [ ] 租户管理（CRUD + 密钥 + 配置 + 健康检查）
-- [ ] 客服管理 + 多对多授权
-- [ ] 操作日志
-- [ ] 数据看板（全平台 / 租户 / 客服）
+**严格限范围**（参考 Codex §2 Q-final-3 表态）：
+- [ ] 模板初始化（vue-pure-admin 基础）
+- [ ] 登录页（用户名+密码 / 8 位密钥）
+- [ ] 工作台布局（顶部当前归属 + 三栏：会话列表 / 对话面 / 用户档案）
+- [ ] 会话列表（仅当前 mp 的会话，无租户切换器）
+- [ ] 对话消息列表（升序，自动滚到底）
+- [ ] **文本回复**（图片 P1）
+- [ ] 基础快捷回复（个人级 CRUD）
+- [ ] 新消息提示（桌面通知 + tab 闪烁 + 声音）
+- [ ] Socket.IO 连接 + 心跳
 
-**验收**：超管能完整管理 → 创建租户 → 创建客服 → 授权 → 看数据
+**P0 不做**：多租户切换器 / 数据看板 / 复杂坐席分配 / 工单 / 文件图片发送 / 撤回 / 转接 / 黑名单 / 完整 admin-web
 
----
-
-## Phase 9 · 离线消息 + 订阅消息（3 d）
-
-- [ ] subscribe-templates（从抖音同步）
-- [ ] subscribe-push（按 openid 单用户 1 QPS 限流 + BullMQ）
-- [ ] offline-message-queue（用户离线写入 + 上线拉取）
-- [ ] `GET /douyin/customer-service/sync-offline`
-
-**验收**：客服回复离线用户 → 写离线表；用户上线 → sync-offline 拿到；订阅消息推送限流准确
+**验收**：客服浏览器登录 → 收 mock fan 进线 → 文本回复 → 用户拉到
 
 ---
 
-## Phase 10 · 抖音事件回调（2 d）
+## Phase 6 · 部署 + 联调（用户域名/VPS 准备好后启动）
 
-- [ ] `POST /douyin/callback/:appid`（@RawBody）
-- [ ] RSA-SHA256 验签 + AES 解密
-- [ ] msg_id 5min 去重
-- [ ] 事件分发 handlers（订阅状态 / 视频发布 / 内容审核结果）
-
-**验收**：mock 抖音发回调 → 验签通过 → 分发；篡改 body → 拒绝
-
----
-
-## Phase 11 · 通知系统（2 d）
-
-- [ ] 桌面通知 + 声音（agent-web）
-- [ ] 飞书 / 企业微信 群机器人 webhook
-- [ ] 邮件兜底
-- [ ] 升级链（30s → webhook → 5min → email）
-
-**验收**：测试群真实收到推送；邮件不进垃圾箱；客服开会话取消后续升级
-
----
-
-## Phase 12 · 上传 + 短链 + 二维码（2 d）
-
-- [ ] upload 文件上传（mime + size + sharp + hash 去重）
-- [ ] short-links（generateSchema V2）
-- [ ] qrcodes（createQRCode V2 + 多 appname）
-- [ ] OSS / 本地存储切换
-
-**验收**：客服头像上传；短链生成 + 用户扫码进入会话；二维码可扫描
-
----
-
-## Phase 13 · 多宿主 + 抖音独有（2 d）
-
-- [ ] capability matrix（packages/shared）
-- [ ] `GET /douyin/capabilities`
-- [ ] live-mount + aweme-capture + follow-aweme（**仅在 Q04 决议为做的情况下**）
-
-**验收**：不同 host 调 /capabilities 返回正确清单；不可用能力调用拒绝
-
----
-
-## Phase 14 · 操作日志 + 黑名单 + 统计（2 d）
-
-- [ ] operation-logs（@AuditLog 装饰器）
-- [ ] blacklist
-- [ ] stats（实时 + DailyStats 聚合）
-- [ ] cleanup cron（离线消息过期 / 会话超时 / token 刷新 / 短链刷新）
-
-**验收**：所有写操作有日志；黑名单生效；数据看板有数据；24h 内所有 cron 跑过
-
----
-
-## Phase 15 · 部署 + 联调（3 d）
-
-- [ ] VPS 部署（systemd + nginx + docker compose）
-- [ ] 4 个域名解析 + Let's Encrypt HTTPS
-- [ ] 抖音控制台 4 类合法域名 + 业务域名 + download 域名
-- [ ] 抖音事件回调地址配置
+- [ ] VPS + nginx + docker compose + Let's Encrypt
+- [ ] 抖音控制台 4 类合法域名 + 业务域名
+- [ ] 真实 appid/secret 配置
 - [ ] Codex 切 USE_MOCK=false 联调
-- [ ] 真机端到端走通（iOS / Android / 不同 host）
-
-**验收**：洪承杂货店真机走通登录 → 商品 → 预约 → 客服 → 离线 → 重连
+- [ ] 真机端到端走通（iOS / Android）
 
 ---
 
-## Phase 16 · 上线灰度（2 d）
+## P0 总工时
 
-- [ ] 抖音版本提审
-- [ ] 监控全部就位（Prometheus / Grafana / Sentry / Uptime）
-- [ ] 备份策略生效
-- [ ] 灾难恢复演练
-- [ ] 第一个真实租户灰度上线
+```
+Phase 0 项目骨架        2.0 d
+Phase 1 抖音 client     2.0 d
+Phase 2 鉴权+多租户     1.5 d
+Phase 3 12 接口         3.0 d
+Phase 4 Socket+离线     1.5 d
+Phase 5 agent-web       4.0 d
+─────────────────────
+P0 本地代码完成         14.0 d
 
-**验收**：审核通过；7 天稳定运行；真实预约走通；无 P0 告警
+Phase 6 部署联调（待用户提供资源）+3.0 d
+─────────────────────
+P0 联调上线总计         17.0 d
+```
+
+---
+
+## P1 后置（评审已确认不进 P0）
+
+- [ ] admin-web 完整管理 UI
+- [ ] 订阅消息推送（subscribe-templates + subscribe-push）
+- [ ] 客服离线多通道通知（飞书 / 企微 / 钉钉 / 邮件）
+- [ ] 撤回消息
+- [ ] 黑名单
+- [ ] 自动会话超时关闭
+- [ ] 数据看板
+- [ ] 操作审计日志页面（数据已落，仅缺 UI）
+
+## P2 后置
+
+- [ ] `GET /douyin/capabilities` 多宿主路由
+- [ ] 直播挂载 / 拍抖音 / 关注抖音号
+- [ ] 计费 / 套餐
+- [ ] 多客服自动分流
+- [ ] AI 自动回复
 
 ---
 
@@ -218,5 +175,6 @@
 - [x] 不做交易订单同步
 - [x] 不返回支付字段
 - [x] 不做电商小店原生商品同步
-- [x] 不做 AI 自动回复
+- [x] 不做物流履约
+- [x] 不做库存自动扣减（但保留 stockStatus 展示字段）
 - [x] 首版仅简体中文（无 i18n）
