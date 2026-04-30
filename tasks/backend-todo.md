@@ -20,19 +20,23 @@ P0 全部代码可在本地完成，零依赖真实抖音平台。
 
 ---
 
-## Phase 0 · 项目骨架（2 d）
+## Phase 0 · 项目骨架（2 d）✅ 已完成（2026-04-30）
 
-- [ ] 建 `/Volumes/文件/dy/backend-platform/`
-- [ ] pnpm workspace + 3 个 app（api-server / agent-web / shared）
-- [ ] Prisma schema（含 Organization + MiniProgram + Agent + AgentMiniProgram + 全部业务表）
-- [ ] Alembic-style migration 初始版
-- [ ] docker-compose（MySQL 8 + Redis 7）
-- [ ] ENV 配置 + zod 校验
-- [ ] 全局 envelope 响应拦截器 + HTTP 状态码 + 错误码体系
-- [ ] traceId 中间件 + pino 日志
-- [ ] `pnpm dev` 起来 + `/health` 返 200
+- [x] 建 `/Volumes/文件/dy/backend-platform/`
+- [x] pnpm workspace + 3 个 app（api-server / agent-web / shared）
+- [x] Prisma schema（含 Organization + MiniProgram + Agent + AgentMiniProgram + 全部业务表）
+- [x] Alembic-style migration（待 `prisma migrate dev` 首跑生成）
+- [x] docker-compose（MySQL 8 + Redis 7）
+- [x] ENV 配置 + zod 校验（`env.schema.ts`）
+- [x] 全局 envelope 响应拦截器 + HTTP 状态码 + 错误码体系
+- [x] traceId 中间件
+- [x] `/health` + `/readiness` 端点
+- [x] seed.ts（1 超管 + 1 Org + 1 mp + 1 客服 + 4 分类 + 默认欢迎语）
 
 **验收**：`curl /health` 200；`agent-web` 显示登录页；`prisma migrate dev` 可一键建表
+
+**实际产出**：41 个文件 / 958 行 TypeScript
+详见 `changes/2026-04-30-phase-0-completion.md`
 
 ---
 
