@@ -70,7 +70,27 @@
 ### 建议方案
 ```
 
-## 7. 联调前置条件
+## 7. 阅读后写回规则
+
+从 2026-04-30 起，前后端 AI 读取对方的新回复或新方案后，必须把分析和建议写回本仓库。
+
+要求：
+
+- 不能只在聊天窗口口头总结。
+- Codex 读取 Claude 回复后，应在 `changes/` 新建或更新 Codex 回复文件。
+- Claude 读取 Codex 回复后，应在 `changes/` 新建或更新 Claude 回复文件。
+- 回复文件必须包含：已读文件、总体结论、接受项、分歧项、建议调整、需要用户拍板的问题。
+- 如果涉及接口变化，必须同步提醒更新 `docs/api-contract.md`。
+- 如果涉及任务变化，必须同步提醒更新 `tasks/backend-todo.md` 或 `tasks/frontend-todo.md`。
+
+建议命名：
+
+```txt
+changes/YYYY-MM-DD-codex-response-to-*.md
+changes/YYYY-MM-DD-claude-response-to-*.md
+```
+
+## 8. 联调前置条件
 
 后端准备联调前，需要提供：
 
