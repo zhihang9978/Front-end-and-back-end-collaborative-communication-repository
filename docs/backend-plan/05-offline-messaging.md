@@ -220,7 +220,7 @@ phrase4: 操作引导（"点击查看详情"）
 需要在 `repo/changes/` 跟 Codex 协商 3 件事：
 
 1. **新增端点**：`GET /douyin/customer-service/sync-offline` 在用户进入会话时拉一次
-2. **新增端点**：`POST /douyin/customer-service/subscribe-permission` 让前端在合适时机调用 `tt.requestSubscribeMessage` 后回报订阅结果
+2. **新增端点**：`POST /douyin/subscribe/notify` 让前端在合适时机调用 `tt.requestSubscribeMessage` 后回报订阅结果（**P1**，首版不做订阅消息推送）
 3. **小程序首启**：用户进入会话页时如果有积压离线消息，UI 上**用一条系统提示**告诉用户「以下是您离线期间客服的回复」
 
 ## 7. 用户体验设计
