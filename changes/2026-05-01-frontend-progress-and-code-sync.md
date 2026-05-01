@@ -5,28 +5,23 @@
 
 ## 本次同步目的
 
-将洪承杂货店抖音小程序前端最新状态、设计改动、登录策略、客服能力和源码快照同步到前后端协作仓库，供后端 Claude 后续联调和审计使用。
+将洪承杂货店抖音小程序前端最新状态、UI 改动、登录策略、客服能力、隐私权限处理和代码快照清单同步到前后端协作仓库，供后端 Claude 后续联调和审计使用。
 
-## 本次前端主要变化
+## 本次主要变化
 
 ### 1. 登录策略按抖音规范重构
 
-已确认并落实：
-
 - 用户不登录可以浏览首页、商品列表、商品详情、服务说明和门店参考价。
 - 在线客服、预约/预定、查看预约记录属于个人化动作，才提示登录。
-- 登录提示可取消，取消后继续浏览，不阻断基础内容。
+- 登录提示可取消，取消后继续浏览。
 - 用户确认登录后跳转到“我的”，由用户主动点击“抖音授权登录”。
 - `tt.getUserProfile` 只在用户点击登录按钮后调用，`force: false`。
 - 登录成功后自动继续之前动作。
-- 登录失败/取消授权/退出登录时清理缓存和待跳转动作。
-
-新增核心文件：
-
-- `utils/auth-guard.ts`
+- 登录失败、取消授权、退出登录时清理缓存和待跳转动作。
 
 涉及文件：
 
+- `utils/auth-guard.ts`
 - `api/auth.ts`
 - `utils/contact.ts`
 - `pages/profile/index/index.ts`
@@ -35,11 +30,9 @@
 - `pages/order/detail/detail.ts`
 - `pages/order/list/list.ts`
 
-### 2. 客服系统作为重点能力继续完善
+### 2. 客服系统继续作为重点能力完善
 
-当前客服能力：
-
-- 不放底部 Tab，仍作为商品、首页、预约、我的中的业务入口。
+- 客服不放底部 Tab，保留在首页、商品详情、订单详情、我的等业务入口。
 - 未登录进入客服时弹出可取消登录提示。
 - 登录后可创建客服会话。
 - 对话页支持文字、图片、视频、语音条。
@@ -55,39 +48,34 @@
 - 隐私页只做说明，不再放“同意隐私”按钮。
 - 不再额外强制用户勾选隐私协议。
 - 图片、视频、录音只在用户主动操作时调用。
+- 麦克风授权流程已修复，允许后不再卡在“未允许”。
 
 ### 4. 整体 UI 完成重构
 
-参考 Semi Design / 抖音官方设计系统方向，完成全局视觉统一：
+参考 Semi Design / 抖音官方设计系统方向，已完成全局视觉统一：
 
 - 主色：`#161823`
 - 页面底色：`#F4F5F7`
 - 卡片：白底、16px 圆角、轻边框、弱投影
 - 按钮：统一 44px 高、12px 圆角
-- 商品价格：继续使用金色 `#C8964E`
+- 商品价格：金色 `#C8964E`
 - 首页、商品列表、商品详情、预约、我的、隐私、客服页均已统一视觉层级
 - 修复首页和列表页过大空白、品牌重复、右侧溢出、分类拥挤等问题
 
-### 5. 前端代码快照
+### 5. 前端代码快照清单
 
-本次同步上传源码快照：
+仓库已新增：
 
-- `snapshots/frontend-miniapp-source-2026-05-01.zip.base64`
+- `snapshots/frontend-miniapp-delta-2026-05-01-manifest.md`
 
-快照说明：
+本地已生成前端 delta 快照：
 
-- 包含文本源码：`api / config / data / docs / pages / types / utils` 和项目配置文件。
-- 排除 `node_modules`。
-- 排除二进制图片资源 `assets/` 与 `icon.png`，避免协作仓库体积过大。
-- 如需恢复源码，可将 base64 解码为 zip 后解压。
+- ZIP：`C:\Users\Administrator\AppData\Local\Temp\frontend-miniapp-delta-2026-05-01.zip`
+- Base64：`C:\Users\Administrator\AppData\Local\Temp\frontend-miniapp-delta-2026-05-01.zip.base64.txt`
+- ZIP SHA256：`3933313F33A3D9A9AF34741B97B1ACF99E6C510A03762E6CEAE72F5F853412CB`
+- Base64 SHA256：`3439B92B3141EB15E7C72FDBB428E66075AF208B611415AA6CF743CF09482694`
 
-Windows PowerShell 解码示例：
-
-```powershell
-$b64 = Get-Content .\snapshots\frontend-miniapp-source-2026-05-01.zip.base64 -Raw
-[IO.File]::WriteAllBytes('frontend-miniapp-source-2026-05-01.zip', [Convert]::FromBase64String($b64))
-Expand-Archive .\frontend-miniapp-source-2026-05-01.zip .\frontend-miniapp-source-2026-05-01
-```
+说明：当前机器没有 `git` / `gh`，GitHub 连接器不支持直接按本地路径上传二进制文件；整段 base64 通过工具输出时会被截断。因此本次协作仓库同步的是前端进度、代码快照 manifest、校验值和联调边界。完整工程仍以本地 `D:\dyxcx\自提商城` 为准。
 
 ## 当前 mock 状态
 
@@ -107,9 +95,9 @@ export const USE_MOCK = true;
 
 请后端按 `docs/api-contract.md` v2.1 继续推进，前端下一轮联调重点是：
 
-1. `/douyin/login`：支持头像昵称可选，拒绝授权时前端不应依赖头像昵称。
+1. `/douyin/login`：支持头像昵称可选，拒绝授权时前端不依赖头像昵称。
 2. `/douyin/reservations`：前端需要按后端 v2.1 改为 `productId + optionId + Idempotency-Key`。
-3. `/douyin/customer-service/session`：如果后端已移除 `welcomeMessage`，前端需要在联调前去掉兼容逻辑。
+3. `/douyin/customer-service/session`：确认是否保留 `welcomeMessage`。
 4. `/douyin/customer-service/message/send`：消息主键统一 `id`。
 5. `/douyin/upload`：确认图片、视频、语音三类上传返回字段。
 6. `/douyin/customer-service/sync-offline?sessionId=`：确认单会话过滤行为。
@@ -126,5 +114,5 @@ export const USE_MOCK = true;
 ## 已知限制
 
 - 本机当前没有 `git` / `gh`，所以本次通过 GitHub 连接器直接写入协作仓库。
-- 这不是标准 Git checkout 推送，后续建议安装 Git 并将完整前端工程独立建仓。
+- 这不是标准 Git checkout 推送；后续建议安装 Git，并将完整前端工程独立建仓。
 - 二进制图片资源未上传到协作仓库快照。
