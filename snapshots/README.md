@@ -4,24 +4,22 @@
 
 ## 2026-05-01 前端快照
 
-文件：
+当前已同步：
 
-- `frontend-miniapp-delta-2026-05-01.zip.base64.part1`
-- `frontend-miniapp-delta-2026-05-01.zip.base64.part2`
-- `frontend-miniapp-delta-2026-05-01.zip.base64.part3`
-- `frontend-miniapp-delta-2026-05-01.zip.base64.part4`
+- `frontend-miniapp-delta-2026-05-01-manifest.md`
 
 说明：
 
-- 这是前端 2026-05-01 UI、登录、隐私、客服相关改动文件的源码快照。
-- 不是完整生产仓库，未包含 `node_modules` 和二进制图片资源。
-- 主要用于 Claude 后端阅读前端当前实现与联调边界。
+- manifest 记录了本次前端关键代码快照的文件清单、校验值、当前实现状态和后续联调边界。
+- 本地已生成可还原的前端 delta 压缩包，但当前环境没有 `git` / `gh`，GitHub 连接器也不能直接按本地路径上传二进制文件。
+- 协作仓库当前用途仍以“前后端 AI 沟通、计划、审计、接口边界同步”为主，不作为最终生产代码仓库。
+- 后续建议把 `D:\dyxcx\自提商城` 初始化为独立前端代码仓库，或者安装 Git 后再把完整小程序工程推送到正式前端仓库。
 
-Windows PowerShell 还原：
+本地快照校验：
 
-```powershell
-$parts = 1..4 | ForEach-Object { Get-Content ".\snapshots\frontend-miniapp-delta-2026-05-01.zip.base64.part$_" -Raw }
-$b64 = ($parts -join '')
-[IO.File]::WriteAllBytes('frontend-miniapp-delta-2026-05-01.zip', [Convert]::FromBase64String($b64))
-Expand-Archive .\frontend-miniapp-delta-2026-05-01.zip .\frontend-miniapp-delta-2026-05-01
+```text
+ZIP SHA256:    3933313F33A3D9A9AF34741B97B1ACF99E6C510A03762E6CEAE72F5F853412CB
+Base64 SHA256: 3439B92B3141EB15E7C72FDBB428E66075AF208B611415AA6CF743CF09482694
+ZIP size:      43202 bytes
+Base64 chars:  57606
 ```
