@@ -197,11 +197,15 @@ type OrderStatus = 'pending' | 'confirmed' | 'completed' | 'cancelled';
 |---|---|---|
 | `name / serviceSummary / businessHours / pickupNotice / afterSaleNotice` | ✅ | 门店配置 |
 | `phone` | 可选 | 门店电话，前端不展示电话入口 |
-| `douyinImId` | ⚠️ 推荐 | 当前 mp 绑定的抖音 IM 客服账号；前端 `<button open-type="im" data-im-id="{{douyinImId}}">` 用 |
+| `douyinImId` | ⚠️ 推荐 | 抖音 IM 客服主管的**抖音号字符串**（已查证 2026-05-01：见 `/Volumes/文件/dy/03-后端集成-Claude/06-抖音IM客服真实形态.md`） |
 
 **配置位置**：后端 `MiniProgram.config.douyinImId`（管理员后台编辑该 JSON 字段）
 
-**说明**：该接口可不登录访问。前端不展示门店地址（后端不返 `address`）。
+**说明**：
+- 该接口可不登录访问。前端不展示门店地址（后端不返 `address`）。
+- 抖音 IM 客服**完全不走我们后端**：客服在 https://life-im.douyin.com/cs/login PC Web 端登录回复，平台托管全部消息存储/分配/离线推送。
+- 后端**唯一职责**：把 `douyinImId` 字符串按 mp 返给前端（多租户场景必要；单店可前端硬编码替代）。
+- 洪承杂货店属数码硬件类目，前端**不能用** `data-im-type="goods"` 商品卡片或 `data-im-type="order"` 订单卡片（仅泛知识/生活服务/交易 2.0 类目可用）。仅纯文本 IM 入口可用。
 
 ## 3. GET /douyin/categories
 
