@@ -1,184 +1,158 @@
 # 前端当前状态
 
-更新时间：2026-04-30
+更新时间：2026-05-01
+维护方：Codex
+项目：洪承杂货店抖音小程序
+本地目录：`D:\dyxcx\自提商城`
 
-## 当前结论
+## 当前定位
 
-前端小程序目前处于“前端 mock 完整开发态”。核心页面、交互、mock 数据、在线客服 UI、抖音头像昵称同步、预约链路都已完成。当前不接真实后端域名，等待 Claude 后端按 `docs/api-contract.md` 实现接口后联调。
+前端小程序定位为：商品展示、门店参考价、预约/预定、到店自提、在线客服咨询。
 
-## 基本信息
+明确边界：
 
-- 小程序名称：洪承杂货店
-- 开发方式：抖音原生小程序
-- 前端语言：TypeScript
-- 页面技术：TTML + TTSS + TS
-- 当前模式：纯前端 mock 开发
-- 当前真实后端域名：未写入
-- 当前支付能力：不接入支付
-- 当前客服能力：自建在线客服 UI，非电话客服
+- 首版不做线上支付。
+- 不展示门店地址。
+- 不做纯聊天导购壳子，商品与服务内容必须可浏览。
+- 客服为自建在线客服系统，但入口不放在 Tab 上，避免审核风险。
+- 登录按需触发，不开屏强制登录。
 
-当前前端配置：
+## 已完成功能
+
+### 页面结构
+
+- `pages/index/index`：首页，服务说明、搜索入口、客服入口、服务入口、热门商品。
+- `pages/goods/list/list`：商品与服务列表，支持分类、搜索、门店参考价展示。
+- `pages/goods/detail/detail`：商品详情，轮播图、规格、参考价、库存、配置项、客服与预约按钮。
+- `pages/order/confirm/confirm`：预约确认，联系人表单、数量、备注、信息使用确认。
+- `pages/order/list/list`：我的预约，登录后查看记录，未登录展示非阻断登录提示。
+- `pages/order/detail/detail`：预约详情，商品、预约、售后与客服确认入口。
+- `pages/contact/index/index`：在线客服对话页。
+- `pages/privacy/index/index`：隐私与权限说明。
+- `pages/profile/index/index`：我的，登录、预约入口、商品入口、客服入口、隐私入口、退出登录。
+
+### 登录策略
+
+符合抖音“非强制登录”要求：
+
+- 首页、商品列表、商品详情均可免登录浏览。
+- 进入在线客服、提交预约、查看预约详情/预约记录时才提示登录。
+- 登录提示弹窗可取消，取消后继续浏览。
+- 用户确认后跳转到“我的”，由用户主动点击“抖音授权登录”。
+- `tt.getUserProfile` 仅由点击事件触发，`force: false`。
+- 登录失败或用户取消授权时清理本地登录缓存和待跳转动作。
+- 登录成功后自动继续之前动作，例如进入客服或打开预约确认页。
+
+核心文件：
+
+- `utils/auth-guard.ts`
+- `api/auth.ts`
+- `pages/profile/index/index.ts`
+- `utils/contact.ts`
+
+### 客服系统
+
+当前客服是前端 mock + 自建客服接口预留：
+
+- 入口来源支持 `home / goods_list / product_detail / order_detail / profile / tab`。
+- 支持会话创建、消息拉取、发送消息、离线消息同步。
+- 消息类型：`text / image / voice / video`。
+- 图片、视频入口收拢在 `+` 面板。
+- 文件发送已移除。
+- 语音发送采用左侧麦克风图标，按住说话、上滑取消、松开发送。
+- 客服页保留客服头像和名称展示位。
+- 未登录进入客服时先提示登录，用户可取消继续浏览。
+
+核心文件：
+
+- `pages/contact/index/index.ts`
+- `pages/contact/index/index.ttml`
+- `pages/contact/index/index.ttss`
+- `api/customer-service.ts`
+- `types/models.ts`
+
+### 隐私与权限
+
+- `app.json` 已开启 `usePrivacyCheck: true`。
+- 已声明 `scope.camera`、`scope.album`、`scope.record` 用途。
+- 隐私说明页仅做说明，不再额外放“同意隐私”按钮，避免和抖音原生隐私流程冲突。
+- 图片、视频、录音均为用户主动操作时按需调用。
+- 麦克风授权流程已修正：用户允许后不再卡在“未允许”；明确拒绝时才引导去设置。
+
+核心文件：
+
+- `app.json`
+- `utils/privacy.ts`
+- `pages/privacy/index/index.*`
+
+### UI 状态
+
+2026-05-01 已完成整体 UI 重构：
+
+- 参考 Semi Design / 抖音官方设计系统方向。
+- 全局主色统一为 `#161823`。
+- 页面底色统一为 `#F4F5F7`。
+- 卡片统一 16px 圆角、轻边框、弱投影。
+- 首页、商品列表、商品详情、预约、我的、隐私、客服页全部统一视觉层级。
+- 底部 Tab 选中态同步为新主色。
+- 去掉明显 AI 味的重渐变、大空白、重复品牌区域和无效卡片。
+
+核心文件：
+
+- `app.ttss`
+- `app.json`
+- `pages/index/index.ttss`
+- `pages/goods/list/list.ttss`
+- `pages/goods/detail/detail.ttss`
+- `pages/order/confirm/confirm.ttss`
+- `pages/order/list/list.ttss`
+- `pages/order/detail/detail.ttss`
+- `pages/profile/index/index.ttss`
+- `pages/privacy/index/index.ttss`
+- `pages/contact/index/index.ttss`
+- `pages/store/index/index.ttss`
+
+## 后端接口对接状态
+
+当前前端仍处于 mock 模式：
 
 ```ts
 export const API_BASE_URL = '';
 export const USE_MOCK = true;
 ```
 
-后端联调时再切换为：
+说明：
 
-```ts
-export const API_BASE_URL = 'https://实际后端域名';
-export const USE_MOCK = false;
-```
+- 已删除真实域名，避免开发阶段弹出 `request:fail url not in domain list`。
+- 后端联调时再填写正式 API 域名，并在抖音开放平台配置 request/upload/download/socket 合法域名。
+- 预约、商品、客服接口路径仍按 `docs/api-contract.md` 预留。
 
-## 最新前端状态快照
+## 最新代码快照
 
-- 商品数据：14 个 mock 商品/服务。
-- 商品图片：14 个商品均为一商品一主图，已检查不复用。
-- 商品详情：支持配置清单 `specs`，整机商品可展示 CPU、内存、硬盘、显示器、网络、系统等配置。
-- 升级服务：支持 `options`，用于 SSD、内存、系统迁移等服务选择配置。
-- 在线客服：左上角导航标题为“在线客服”，页面内不再显示门店客服头部卡片，不显示电话入口。
-- 在线客服消息：已预留客服头像和名称位置，使用 `senderName/senderAvatar` 渲染。
-- 抖音登录：用户点击“抖音授权登录”后调用 `tt.getUserProfile` 同步头像和昵称。
-- 客服识别：创建客服会话时会把 `nickName/avatarUrl` 作为 `userProfile` 传给后端。
-- 门店地址：前端不展示地址，不提供复制地址。
-- 预约链路：只提交预约/预定，不产生支付单。
+本次已上传前端源码快照：
 
-## 已完成页面
+- `snapshots/frontend-miniapp-source-2026-05-01.zip.base64`
 
-| 页面 | 路径 | 状态 |
-| --- | --- | --- |
-| 首页 | `pages/index/index` | 已完成 UI 与 mock 数据 |
-| 商品列表 | `pages/goods/list/list` | 已完成分类、搜索、商品卡片 |
-| 商品详情 | `pages/goods/detail/detail` | 已完成商品图、配置清单、预约、客服入口 |
-| 预约确认 | `pages/order/confirm/confirm` | 已完成表单、隐私确认、提交 mock |
-| 我的预约 | `pages/order/list/list` | 已完成登录保护、状态筛选 |
-| 预约详情 | `pages/order/detail/detail` | 已完成详情展示、客服入口 |
-| 在线客服 | `pages/contact/index/index` | 已完成在线对话 UI、客服头像名称预留 |
-| 门店信息 | `pages/store/index/index` | 已完成电话、营业时间、自提/售后说明，不展示地址 |
-| 我的 | `pages/profile/index/index` | 已完成抖音授权登录、头像昵称同步 |
+说明：
 
-## 当前业务规则
+- 该快照包含前端文本源码、页面、接口封装、mock 数据、配置与本地前端文档。
+- 已排除 `node_modules`。
+- 已排除二进制图片资源 `assets/` 与 `icon.png`，避免协作仓库存储过大。
+- 后续本机安装 Git 后，建议再把完整小程序工程作为独立前端代码仓库管理。
 
-- 不做线上支付。
-- 不出现“立即购买”。
-- 统一使用“预约自提”。
-- 所有价格统一标注“门店参考价”。
-- 商品最终价格、库存、配置、服务内容以门店确认结果为准。
-- 不展示门店地址。
-- 客服是自建在线客服，不显示电话入口。
-- 在线客服顶部只使用系统导航标题“在线客服”，页面内容区直接进入对话。
+## 校验结果
 
-## 登录与用户信息
+本地已通过：
 
-前端登录流程：
+- `tsc --noEmit`
+- `app.json / project.config.json / project.private.config.json` JSON 解析
+- BOM 扫描
+- TTSS 大括号基础校验
 
-1. 用户点击“抖音授权登录”。
-2. 前端调用 `tt.getUserProfile` 获取抖音头像和昵称。
-3. 前端调用 `/douyin/login`，传入 `code`、`anonymousCode`、`nickName`、`avatarUrl`。
-4. 后端返回 `token`、`userId`、可选 `nickName`、可选 `avatarUrl`。
-5. 前端保存登录态，并在客服会话中携带用户头像昵称。
+## 当前风险与待办
 
-前端本地存储 key：
-
-```ts
-TOKEN_STORAGE_KEY = 'douyin_token';
-USER_ID_STORAGE_KEY = 'douyin_user_id';
-USER_NICKNAME_STORAGE_KEY = 'douyin_user_nickname';
-USER_AVATAR_STORAGE_KEY = 'douyin_user_avatar';
-```
-
-## 在线客服当前结构
-
-创建客服会话：
-
-```ts
-POST /douyin/customer-service/session
-```
-
-前端会传：
-
-```json
-{
-  "productId": "可选",
-  "orderId": "可选",
-  "userProfile": {
-    "nickName": "抖音昵称",
-    "avatarUrl": "抖音头像"
-  }
-}
-```
-
-客服消息渲染字段：
-
-```ts
-interface CustomerServiceMessage {
-  id: string;
-  role: 'system' | 'user' | 'agent';
-  content: string;
-  createdAt: string;
-  senderName?: string;
-  senderAvatar?: string;
-}
-```
-
-前端已经支持：
-
-- 客服头像：`senderAvatar`
-- 客服名称：`senderName`
-- 用户消息右侧展示
-- 客服消息左侧展示
-
-## 商品数据
-
-当前 mock 商品数量：14 个。
-
-覆盖类型：
-
-- 商务迷你主机
-- 办公台式机整机套装
-- 企业路由器
-- 交换机
-- Wi-Fi 6 AP
-- SSD 升级服务
-- 内存升级服务
-- 系统迁移与数据整理
-- 办公显示器
-- USB-C 扩展坞
-- 移动固态硬盘
-- 办公打印机
-- UPS 电源
-- NAS 存储方案
-
-## 图片规则
-
-- 当前商品图为本地 assets 开发占位。
-- 一商品一主图，不允许商品之间复用图片。
-- 已通过 `PRODUCT_IMAGE_UNIQUE_OK 14` 检查。
-- 后端如果返回线上图片，需要配置抖音 download 合法域名。
-
-## 当前本地验证结果
-
-- `TS_OK`
-- `PRODUCT_IMAGE_UNIQUE_OK 14`
-- `BOM_OK`
-
-## 前端等待后端事项
-
-- 登录接口 `/douyin/login`
-- 商品分类接口 `/douyin/categories`
-- 商品列表接口 `/douyin/products`
-- 商品详情接口 `/douyin/products/:id`
-- 预约提交接口 `/douyin/reservations`
-- 我的预约接口 `/douyin/orders`
-- 预约详情接口 `/douyin/orders/:id`
-- 客服会话接口 `/douyin/customer-service/session`
-- 客服发消息接口 `/douyin/customer-service/message/send`
-
-## 后端联调前置条件
-
-- 提供真实 HTTPS API 域名。
-- 抖音开放平台配置 request 合法域名。
-- 如后端返回图片 URL，需要配置 download 合法域名。
-- 后端返回字段以 `docs/api-contract.md` 为准。
-- 后端不要返回支付、退款、交易订单同步相关字段。
+- 当前代码仓库同步是通过 GitHub 连接器上传快照；本机没有 `git` / `gh`，暂未形成标准 Git checkout。
+- 二进制图片资产未进入协作仓库快照。
+- 后端 contract v2.1 已调整 reservation 字段，前端预约接口仍需在正式联调前对齐 `Idempotency-Key`、`optionId` 必填规则和服务端价格回填逻辑。
+- 客服接口需要后端确认最终消息模型、上传返回字段、离线同步行为。
+- 真机测试仍需在抖音开发者工具和真实设备上完成。
