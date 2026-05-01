@@ -64,22 +64,23 @@ P0 全部代码可在本地完成，零依赖真实抖音平台。
 
 ---
 
-## Phase 3 · 12 个 P0 接口（3 d）
+## Phase 3 · 13 个 P0 接口（4 d，v2.2 加 upload）
 
 按 Codex 提议顺序：
 
-- [ ] **接口 1**：`POST /douyin/login`（appid 必填，hostApp 默认 douyin，返 token + isNewUser）
-- [ ] **接口 2**：`GET /douyin/config`（不登录可访问，按当前 mp 返）
+- [ ] **接口 1**：`POST /douyin/login`（appid 必填，hostApp 默认 douyin，返 token + isNewUser；nickName/avatarUrl 可选）
+- [ ] **接口 2**：`GET /douyin/config`（不登录可访问，按 X-Douyin-Appid header 解析 mp）
 - [ ] **接口 3**：`GET /douyin/categories`（4 个固定分类）
 - [ ] **接口 4**：`GET /douyin/products?category=&keyword=`
 - [ ] **接口 5**：`GET /douyin/products/:id`
-- [ ] **接口 6**：`POST /douyin/reservations`（必登录，加密手机号，24h 限频）
+- [ ] **接口 6**：`POST /douyin/reservations`（v2.1：productId+optionId+Idempotency-Key，服务端查实价）
 - [ ] **接口 7**：`GET /douyin/orders`（必登录，仅查自己的，倒序）
 - [ ] **接口 8**：`GET /douyin/orders/:id`（必登录，校验归属）
-- [ ] **接口 9**：`POST /douyin/customer-service/session`（必登录，复用活跃会话，返 isNew + welcomeMessage）
-- [ ] **接口 10**：`POST /douyin/customer-service/message/send`（user ack，clientMessageId 强制幂等，过 antidirt）
-- [ ] **接口 11**：`GET /douyin/customer-service/sessions/:id/messages?afterId=&limit=`（升序，afterId 为空返最近 20 条）
-- [ ] **接口 12**：`GET /douyin/customer-service/sync-offline`（拉取所有离线消息，自动标 DELIVERED）
+- [ ] **接口 9**：`POST /douyin/customer-service/session`（必登录，复用活跃会话，**新建时持久化 system 欢迎消息**）
+- [ ] **接口 10**：`POST /douyin/customer-service/message/send`（v2.2：支持 4 种 type，image/voice/video 时必传 uploadId）
+- [ ] **接口 11**：`GET /douyin/customer-service/sessions/:id/messages?afterId=&limit=`（升序，含 mediaUrl/thumbUrl/duration）
+- [ ] **接口 12**：`GET /douyin/customer-service/sync-offline?sessionId=`（v2.1+v2.2 字段）
+- [ ] **接口 13** ★ **v2.2 新增**：`POST /douyin/upload`（multipart，scene=cs_image|cs_video|cs_voice，返 uploadId+url+thumbUrl+duration 等）
 
 每个接口必须：
 - 有单元测试（happy + 至少 3 个错误路径）
@@ -87,11 +88,11 @@ P0 全部代码可在本地完成，零依赖真实抖音平台。
 - 响应严格符合 envelope
 - 错误码符合 6 位 int 体系
 
-**验收**：所有 12 接口通过 supertest + 真 MySQL/Redis 集成测试
+**验收**：所有 13 接口通过 supertest + 真 MySQL/Redis 集成测试
 
 ---
 
-## Phase 4 · Socket.IO + 离线消息（1.5 d）
+## Phase 4 · Socket.IO + 离线消息（2 d，v2.2 调整）
 
 - [ ] AgentSocketGateway（鉴权 + 心跳 + Room 管理）
 - [ ] socket.io-redis-adapter
@@ -103,7 +104,7 @@ P0 全部代码可在本地完成，零依赖真实抖音平台。
 
 ---
 
-## Phase 5 · agent-web 极简版（4 d）
+## Phase 5 · agent-web 极简版（5 d，v2.2 调整：加多媒体播放）
 
 **严格限范围**（参考 Codex §2 Q-final-3 表态）：
 - [ ] 模板初始化（vue-pure-admin 基础）
@@ -132,22 +133,24 @@ P0 全部代码可在本地完成，零依赖真实抖音平台。
 
 ---
 
-## P0 总工时
+## P0 总工时（v2.2 修订：加多媒体支持）
 
 ```
-Phase 0 项目骨架        2.0 d
+Phase 0 项目骨架        2.0 d ✅
 Phase 1 抖音 client     2.0 d
 Phase 2 鉴权+多租户     1.5 d
-Phase 3 12 接口         3.0 d
-Phase 4 Socket+离线     1.5 d
-Phase 5 agent-web       4.0 d
+Phase 3 13 接口         4.0 d   ← v2.2 加 /douyin/upload + 多媒体处理 (+1d)
+Phase 4 Socket+离线     2.0 d   ← v2.2 4 类型消息推送 (+0.5d)
+Phase 5 agent-web       5.0 d   ← v2.2 多媒体播放器 (+1d)
 ─────────────────────
-P0 本地代码完成         14.0 d
+P0 本地代码完成         16.5 d
 
 Phase 6 部署联调（待用户提供资源）+3.0 d
 ─────────────────────
-P0 联调上线总计         17.0 d
+P0 联调上线总计         19.5 d
 ```
+
+变更原因：用户决策接受 Codex 前端范围扩张，消息类型从 `text` 扩到 `text/image/voice/video` 4 种，新增 `/douyin/upload` 端点。详见 `changes/2026-05-01-claude-response-frontend-progress.md`。
 
 ---
 
